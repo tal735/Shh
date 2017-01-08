@@ -3,13 +3,10 @@ package network;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import network.NetworkItem.NetworkItemType;
@@ -24,11 +21,14 @@ public class Server {
 	private static CryptHelper cryptHelper = new CryptHelper();
 	
 	private HashMap<String, Integer> nickToIdMap = new HashMap<String, Integer>();					// NICKNAME --> ID
-	private HashMap<Integer, Contact> idToContactMap = new HashMap<Integer, Contact>();				// ID --> User
+	private HashMap<Integer, Contact> idToContactMap = new HashMap<Integer, Contact>();				// ID --> Contact
 	private HashMap<String, byte[]> nickToPass = new HashMap<String, byte[]>();						// Nick --> Pass
 	private HashMap<Integer, List<Contact>> idToFriends = new HashMap<Integer, List<Contact>>();	// ID --> Contact List (friends)
 	private HashMap<Integer, HashMap<Integer, List<Message>>> idToidMessages = 						//ID --> <ID-->List<Messages>>
 			new HashMap<Integer, HashMap<Integer, List<Message>>>(); 								
+	
+	private HashMap<Integer, Integer> idToPort = new HashMap<Integer, Integer>();					//ID-->LISTENING PORT FOP MESSAGES
+	static int uniqueId = -1;
 	
 	public Server(){
 		initServerSocket();
@@ -48,34 +48,21 @@ public class Server {
 	}
 
 	private void initTestValues(){
-		//names in lower
-		String tal = "Tal";
-		String Yamit = "Yamit";
-		
-		tal = tal.toLowerCase();
-		Yamit = Yamit.toLowerCase();
-		
-		// init test values
-		nickToIdMap.put(tal, 0);
-		nickToIdMap.put(Yamit, 1);
-		
-		Contact talUser = new Contact(0,tal,null);
-		Contact yamitUser = new Contact(1,Yamit,null);
-		
-		idToContactMap.put(0, talUser);
-		idToContactMap.put(1, yamitUser);
-		
-		nickToPass.put(tal, cryptHelper.hash_string("123123".toCharArray()));
-		nickToPass.put(Yamit, cryptHelper.hash_string("1234".toCharArray()));
-		
-		List<Contact> tals_friends = new ArrayList<Contact>();
-		//tals_friends.add(yamitUser);
-		List<Contact> yamits_friends = new ArrayList<Contact>();
-		//yamits_friends.add(talUser);
-		
-		idToFriends.put(0, tals_friends);
-		idToFriends.put(1, yamits_friends);
+		addUserToDb("tal");
+		addUserToDb("yamit");
+		addUserToDb("tafat");
 	}
+	
+	
+	private void addUserToDb(String nickname){
+		String lower_nickname = nickname.toLowerCase();
+		uniqueId++;
+		nickToIdMap.put(nickname, uniqueId);
+		idToContactMap.put(uniqueId, new Contact(uniqueId, lower_nickname, null));
+		nickToPass.put(nickname, cryptHelper.hash_string("1234".toCharArray()));
+		idToFriends.put(uniqueId, new ArrayList<Contact>());
+	}
+	
 	
 	public void mainServerLoop() throws IOException{
 		try {
@@ -105,13 +92,6 @@ public class Server {
 		   }
 		@Override
 		public void run() {
-			/*
-			System.out.println("socket.getLocalSocketAddress().toString()="+socket.getLocalSocketAddress().toString());
-			System.out.println("socket.getLocalAddress().getHostName()="+socket.getLocalAddress().getHostName());
-			System.out.println("socket.getLocalAddress().getHostAddress()="+socket.getLocalAddress().getHostAddress());
-			System.out.println("socket.getLocalSocketAddress().toString()="+socket.getLocalSocketAddress().toString());
-			*/			
-			
 			while(!socket.isClosed()){
 				NetworkItem response = null;
 				//get item from client
@@ -177,9 +157,9 @@ public class Server {
 			
 			//check if username exists
 			Integer idOfFriend = nickToIdMap.get(contactToAdd);
-			if(idOfFriend!=null){
+			Contact friend = idToContactMap.get(idOfFriend);
+			if(friend!=null){
 				//check if user is not already friend
-				Contact friend = idToContactMap.get(idOfFriend);
 				if(!idToFriends.get(nickToIdMap.get(curentUsername)).contains(friend)){ //this is already checked in client. but just in case
 					//add friend
 					idToFriends.get(nickToIdMap.get(curentUsername)).add(friend);
@@ -190,7 +170,8 @@ public class Server {
 			}
 			
 			//send true/false		
-			response = new NetworkItem(NetworkItem.NetworkItemType.AddContact, result);
+			response = new NetworkItem(NetworkItem.NetworkItemType.AddContact, friend);
+			
 		}else if(ni.getNetworkItemType().equals(NetworkItem.NetworkItemType.TerminateConnection)){
 			try {
 				socket.close();
@@ -202,58 +183,59 @@ public class Server {
 		//receive and send message
 		}else if(ni.getNetworkItemType().equals(NetworkItem.NetworkItemType.Message)){
 			Boolean isSent = false;
-			//get message
+			//get message from source
 			Message m = (Message) ni.getNetworkItem();
-			String from = m.getFrom().toLowerCase(), to = m.getTo().toLowerCase();
-			//lookup ids of to/from
-			Integer fromId = nickToIdMap.get(from), toId = nickToIdMap.get(to);
-			if(toId != null){
-				
-				//create db of messages for FROM-user if not exists
-				if(!idToidMessages.containsKey(fromId)){
-					HashMap<Integer, List<Message>> hml = new HashMap<Integer, List<Message>>();
-					idToidMessages.put(fromId, hml);
-				}
-				
-				//if user never send message to TO-USER add him
-				if(!idToidMessages.get(fromId).containsKey(toId)){
-					idToidMessages.get(fromId).put(toId, null);
-				}
-					
-				//should get here only 1st time
-				if(idToidMessages.get(fromId).get(toId)==null){
-					List<Message> messageList = new ArrayList<Message>();
-					idToidMessages.get(fromId).put(toId, messageList);
-				}
-
-				//send message to user
-				//get socket of dest user
-				Socket toSocket = idToContactMap.get(toId).getSocket();
-				if(toSocket!=null){
+			int idFrom = m.getFromContact().getId();
+			int idTo = m.getToContact().getId();
+			
+			//create db of messages for FROM-user if not exists
+			if(!idToidMessages.containsKey(idFrom)){
+				idToidMessages.put(idFrom, new HashMap<Integer, List<Message>>());
+			}
+			
+			//if user never send message to TO-USER add him
+			if(!idToidMessages.get(idFrom).containsKey(idTo)){
+				idToidMessages.get(idFrom).put(idTo, null);
+			}
+			
+			//should get here only 1st time
+			if(idToidMessages.get(idFrom).get(idTo)==null){
+				idToidMessages.get(idFrom).put(idTo, new ArrayList<Message>());
+			}
+			
+			
+			//send message to user
+			//get socket of dest user
+			Socket toSocket = idToContactMap.get(idTo).getSocket();
+			if(toSocket!=null){
+				//prepare socket of target user
+				Socket toMessageSocket = null;
+				try {
+					toMessageSocket = new Socket(toSocket.getLocalAddress().getHostAddress(), idToPort.get(idTo));
 					//send message
-					NetworkItem messageNI = new NetworkItem(NetworkItemType.Message, m);
-					Socket toMessageSocket = null;
-					try {
-						toMessageSocket = new Socket(toSocket.getLocalAddress().getHostAddress(), Constants.APP_CLIENT_LISTEN_PORT_MESSAGES);
-					} catch (Exception e) {}
-					
-					serverOperations.sendItem(messageNI, toMessageSocket);
-					//get reply from user
-					NetworkItem toUserResponse = serverOperations.recieveItem(toSocket);
-					isSent = ((Message)toUserResponse.getNetworkItem()).getSendStatus();
+					serverOperations.sendItem(ni, toMessageSocket);
+					//set message flag to sent
+					isSent = true;
 				}
-				//add message to messages map
-				m.setSendStatus(isSent);
-				idToidMessages.get(fromId).get(toId).add(m);
-				//if not sent, add to queue of send later
-				if(!m.getSendStatus()){
-					//....
+				catch (Exception e) {
+					isSent = false;
+				}
+				finally{
+					try {
+						if(toMessageSocket!=null)
+							toMessageSocket.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 			
+			m.setSendStatus(isSent);
+			idToidMessages.get(idFrom).get(idTo).add(m);
+			
 			//send back if success or fail
 			response = new NetworkItem(NetworkItem.NetworkItemType.Message, m);
-		}else if(ni.getNetworkItemType().equals(NetworkItem.NetworkItemType.GetContacts)){
+		}else if(ni.getNetworkItemType().equals(NetworkItem.NetworkItemType.GetFriends)){
 			//get input username
 			String username = (String) ni.getNetworkItem();
 			//get id of user
@@ -261,10 +243,27 @@ public class Server {
 			//get friends
 			if(idToFriends.get(id)!=null){
 				List<Contact> contactList = idToFriends.get(id);
-				response = new NetworkItem(NetworkItemType.GetContacts, contactList);
+				response = new NetworkItem(NetworkItemType.GetFriends, contactList);
 			}else{
-				response = new NetworkItem(NetworkItemType.GetContacts, Collections.<Contact>emptyList());
+				response = new NetworkItem(NetworkItemType.GetFriends, Collections.<Contact>emptyList());
 			}
+		}else if(ni.getNetworkItemType().equals(NetworkItem.NetworkItemType.GetContact)){
+			//get contact by id of username
+			//Contact contact = idToContactMap.get(nickToIdMap.get(((String) ni.getNetworkItem()).toLowerCase()));
+			response = new NetworkItem(NetworkItemType.GetContact, idToContactMap.get(nickToIdMap.get(((String) ni.getNetworkItem()).toLowerCase())));
+		}else if(ni.getNetworkItemType().equals(NetworkItem.NetworkItemType.MessagePortUpdate)){
+			//read id of contact + port number
+			//[0] = id of contact
+			//[1] = port of listening to messages of contact
+			Integer values[] = (Integer []) ni.getNetworkItem();
+			Integer id = values[0];
+			Integer newPort = values[1];
+			//update port
+			if(id!=null && newPort!=null){
+					System.out.println("updating port " + newPort + " to id " + id);
+					idToPort.put(id, newPort);
+			}
+			//no need to return anything
 		}
 		
 		//return the response item to caller

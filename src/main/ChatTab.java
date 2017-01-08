@@ -10,27 +10,16 @@ import javax.swing.Timer;
 
 import types.Contact;
 
-
-
 public class ChatTab {
 
-	public ChatTab(String toContact, JTextArea chatHistoryLogTextarea) {
-		super();
-		this.toContact = toContact;
-		chatHistory = new StringBuilder();
-		this.chatHistoryLogTextarea = chatHistoryLogTextarea;
-	}
-
-	public ChatTab(String toContact, StringBuilder chatHistory) {
-		super();
-		this.toContact = toContact;
-		this.chatHistory = chatHistory;
-	}
-
 	JTextArea chatHistoryLogTextarea;
-	String toContact = null;
-	public StringBuilder chatHistory;
 	private Contact contact;
+	
+
+	public ChatTab(Contact c) {
+		this.contact = c;
+		chatHistoryLogTextarea = new JTextArea();
+	}
 	
 	public Contact getContact() {
 		return contact;
@@ -40,25 +29,9 @@ public class ChatTab {
 		this.contact = contact;
 	}
 
-	public String getToContact() {
-		return toContact;
-	}
-
-	public void setToContact(String toContact) {
-		this.toContact = toContact;
-	}
-
-	public StringBuilder getChatHistory() {
-		return chatHistory;
-	}
-
-	public void setChatHistory(StringBuilder chatHistory) {
-		this.chatHistory = chatHistory;
-	}
 
 	public void appendMessage(String message){
 		chatHistoryLogTextarea.append(message);
-		chatHistory.append(message);
 	}
 
 	public JTextArea getChatHistoryLogTextarea() {
@@ -75,11 +48,11 @@ public class ChatTab {
 		timer = new Timer(500, new ActionListener() {
 			JTabbedPane tabbedPane = Chat.getTabbedPane();
 			boolean blinkFlag = false;
-			int index = tabbedPane.indexOfTab(toContact);
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(tabbedPane.indexOfTab(toContact)==tabbedPane.getSelectedIndex()){
+				if(tabbedPane.indexOfTab(contact.getUsername())==tabbedPane.getSelectedIndex()){
 					timer.stop();
+					int index = tabbedPane.indexOfTab(contact.getUsername());
 					tabbedPane.setBackgroundAt(index, null);
 					tabbedPane.setForegroundAt(index, null);
 					return;
@@ -93,7 +66,7 @@ public class ChatTab {
 	
 	private void blink(boolean blinkFlag) {
 		JTabbedPane tabbedPane = Chat.getTabbedPane();
-		int index = tabbedPane.indexOfTab(toContact);
+		int index = tabbedPane.indexOfTab(contact.getUsername());
 		
 		if (index!=-1){
 			if(blinkFlag) {

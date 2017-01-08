@@ -14,7 +14,9 @@ public class NetworkItem implements Serializable {
 		NullItem, //for error handling
 		AddContact,
 		TerminateConnection,
-		GetContacts
+		GetFriends,
+		GetContact,
+		MessagePortUpdate 
 	}
 	
 	public NetworkItem(NetworkItemType type, Object item) {

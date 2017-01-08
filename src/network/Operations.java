@@ -9,7 +9,7 @@ public class Operations {
 
 	public Operations(){};
 	
-	public void sendItem(NetworkItem netItem, Socket targetSocket){
+	public  void sendItem(NetworkItem netItem, Socket targetSocket){
 		//send item to server
 		if(targetSocket == null || netItem == null){
 			return;
@@ -38,7 +38,7 @@ public class Operations {
 
 	}
 
-	public NetworkItem recieveItem(Socket targetSocket){
+	public  NetworkItem recieveItem(Socket targetSocket){
 		//get response
 		try{
 			ObjectInputStream ois = new ObjectInputStream(targetSocket.getInputStream());

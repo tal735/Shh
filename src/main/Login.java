@@ -17,6 +17,7 @@ import javax.swing.JTextField;
 import javax.swing.JPasswordField;
 import javax.swing.ImageIcon;
 
+import types.Contact;
 import misc.Constants;
 import network.Client;
 import network.Server;
@@ -25,6 +26,7 @@ import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import javax.swing.SwingConstants;
 
 public class Login {
 
@@ -78,9 +80,9 @@ public class Login {
 		frmShh.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{89, 380, 0, 0, 0};
-		gridBagLayout.rowHeights = new int[]{0, 0, 0, 34, 52, 0};
+		gridBagLayout.rowHeights = new int[]{0, 0, 0, 34, 52, 0, 0};
 		gridBagLayout.columnWeights = new double[]{0.0, 1.0, 0.0, 1.0, Double.MIN_VALUE};
-		gridBagLayout.rowWeights = new double[]{1.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gridBagLayout.rowWeights = new double[]{1.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		frmShh.getContentPane().setLayout(gridBagLayout);
 		
 		JLabel lblNewLabel = new JLabel("");
@@ -139,10 +141,8 @@ public class Login {
 				}else{
 					//verify username & password
 					if(Chat.getClient().autenticate(usernameTextField.getText(), passwordField.getPassword())){
-						//get id
-						int id = Chat.getClient().getId(usernameTextField.getText());
-						System.out.println("id="+id);
-						Chat.setCurrentUser(id, usernameTextField.getText(), Chat.getClient().getSocket());
+						//set cuurent owner
+						Chat.setCurrentUser(Chat.getClient().getContact(usernameTextField.getText()));
 						//open chat form
 						frmShh.dispose();//setVisible(false);
 						new Chat().setVisible(true);
@@ -155,7 +155,7 @@ public class Login {
 		
 		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
 		gbc_btnNewButton.fill = GridBagConstraints.VERTICAL;
-		gbc_btnNewButton.insets = new Insets(0, 0, 0, 5);
+		gbc_btnNewButton.insets = new Insets(0, 0, 5, 5);
 		gbc_btnNewButton.gridx = 1;
 		gbc_btnNewButton.gridy = 4;
 		frmShh.getContentPane().add(btnNewButton, gbc_btnNewButton);

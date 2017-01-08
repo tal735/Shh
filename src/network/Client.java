@@ -9,6 +9,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 
 import network.NetworkItem.NetworkItemType;
+import main.Chat;
 import misc.Constants;
 import security.*;
 import types.Contact;
@@ -31,11 +32,25 @@ public class Client {
 		} catch (Exception e) {
 			//print error message
 		}
-		
+
 		//create socket for receiving messages
 		if(messageSocket==null){
 			try {
-				messageSocket = new ServerSocket(Constants.APP_CLIENT_LISTEN_PORT_MESSAGES);
+				messageSocket = new ServerSocket(0);
+				//start listening
+				Thread incomingMsgThread = new Thread() {
+					public void run() {
+						try {
+							readMessagesLoop();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}  
+				};
+
+				incomingMsgThread.start();
+
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -43,21 +58,29 @@ public class Client {
 		}
 	};
 	
+	
+	public void updatePortAtServer(){
+		//update server with new port
+		Integer values[] = {Chat.getCurrentUser().getId(), messageSocket.getLocalPort()};
+		networkOperations.sendItem(new NetworkItem(NetworkItemType.MessagePortUpdate, values), clientSocket);
+	}
+	
 	public static void readMessagesLoop() throws IOException{
 		while(true){
 			Socket serverSocket = messageSocket.accept();
 			//get message
 			NetworkItem ni = networkOperations.recieveItem(serverSocket);
 			if(ni.getNetworkItemType().equals(NetworkItemType.Message)){
-				//handle message
 				Message m = (Message) ni.getNetworkItem();
-				//String from = m.getFrom();
 				//update text in chat gui
-				
+				Chat.updateChat(m);
 				//send back success
+				/* not needed as this client is currently in 'receive' mode 
 				m.setSendStatus(true);
-				NetworkItem response = new NetworkItem(NetworkItemType.Message, m);
-				networkOperations.sendItem(response, getSocket());
+				NetworkItem response = new NetworkItem(NetworkItemType.Message, m);		
+				networkOperations.sendItem(response, getSocket());				
+				System.out.println("send true to server");
+				*/
 			}
 			//done
 			serverSocket.close();
@@ -104,52 +127,49 @@ public class Client {
 		return false;
 	}
 
-	public int getId(String username) {
-		int id = -1;
-		//send req for id
-		networkOperations.sendItem(new NetworkItem(NetworkItem.NetworkItemType.Id, username), getSocket());
-		//get response of id
-		NetworkItem idItem = networkOperations.recieveItem(getSocket());
-		id = (Integer) idItem.getNetworkItem();
-		
-		return id;
-	}
-
-	public Boolean addContact(String myUsername, String contactNickname) {
-		Boolean c = null;
+	
+	public Contact addContact(String myUsername, String contactNickname) {
+		Contact c = null;
 		//send request to add contact from server
 		networkOperations.sendItem(new NetworkItem(NetworkItem.NetworkItemType.AddContact, new String[] {myUsername,contactNickname}), clientSocket);
 		//get response from server (contact if OK, null if not ok)
 		NetworkItem networkItem = (NetworkItem) networkOperations.recieveItem(getSocket());
 		if(networkItem.getNetworkItemType().equals(NetworkItem.NetworkItemType.AddContact)){
-			c = (Boolean) networkItem.getNetworkItem();
+			if(networkItem.getNetworkItem() != null){
+				c = (Contact) networkItem.getNetworkItem();
+			}
 		}
 		
 		return c;
 	}
 
+	@SuppressWarnings("finally")
 	public Boolean sendMessage(Message M){
 		Boolean result = false;
-		NetworkItem response;
+		NetworkItem srcMessage;
 		//prepare network item of Message type
 		NetworkItem netItem = new NetworkItem(NetworkItem.NetworkItemType.Message, M);
 		//send message to server
 		networkOperations.sendItem(netItem, getSocket());
 		//get reply of fail/success
-		response = networkOperations.recieveItem(getSocket());
-		if(response.getNetworkItemType().equals(NetworkItemType.Message)){
-			result = ((Message) response.getNetworkItem()).getSendStatus();
+		try{
+			srcMessage = networkOperations.recieveItem(getSocket());
+			if(srcMessage.getNetworkItemType().equals(NetworkItemType.Message)){
+				result = ((Message) srcMessage.getNetworkItem()).getSendStatus();
+			}
 		}
-		
-		return result;
+		finally{
+			return result;
+		}
 	}
 	
 	public void disconnect() {
 		//send terminate connection request
 		networkOperations.sendItem(new NetworkItem(NetworkItem.NetworkItemType.TerminateConnection, null), getSocket());
-		//close connection
+		//close connections
 		try {
-			getSocket().close();
+			clientSocket.close();
+			messageSocket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -164,17 +184,30 @@ public class Client {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<Contact> getContacts(String username) {
+	public List<Contact> getFriends(String username) {
 		List<Contact> contacts = null;
 		//get all contacts of this username
-		NetworkItem ni = new NetworkItem(NetworkItemType.GetContacts, username);
+		NetworkItem ni = new NetworkItem(NetworkItemType.GetFriends, username);
 		networkOperations.sendItem(ni, getSocket());
 		// get contacts
 		NetworkItem response = networkOperations.recieveItem(getSocket());
-		if(response.getNetworkItemType().equals(NetworkItemType.GetContacts)){
+		if(response.getNetworkItemType().equals(NetworkItemType.GetFriends)){
 			contacts = (List) response.getNetworkItem();
 		}
 		
 		return contacts;
+	}
+
+	public Contact getContact(String contactNickname) {
+		Contact contact = null;
+		//send request to get contact
+		NetworkItem ni = new NetworkItem(NetworkItemType.GetContact, contactNickname);
+		networkOperations.sendItem(ni, getSocket());
+		//get contact
+		NetworkItem response = networkOperations.recieveItem(getSocket());
+		if(response.getNetworkItemType().equals(NetworkItemType.GetContact)){
+			contact = (Contact) response.getNetworkItem();
+		}
+		return contact;
 	}
 }

@@ -8,19 +8,16 @@ import java.awt.GridBagLayout;
 
 import javax.swing.JTextArea;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 
 import javax.swing.DefaultListModel;
-import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JButton;
+import javax.swing.JTextPane;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -28,8 +25,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -39,7 +34,6 @@ import java.util.List;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 
 import types.Contact;
 import types.Message;
@@ -48,26 +42,31 @@ import misc.Constants;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.ListSelectionEvent;
+
 import javax.swing.JTabbedPane;
+
+import java.awt.Font;
 
 public class Chat extends JFrame {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTextField inputTextField;
-	private JTextArea chatHistoryLogTextarea;
 	private JButton btnSend;
 	private JButton btnAddNewContact;
 	private JScrollPane scrollPane;
-	private JScrollPane chatHistoryScrollPane;
 	private JTextField newContactTextField;
 	private static Client client = new Client();
-	private JList<String> contactsList;
+	private JList contactsList;
 	private static Contact currentUser;
-	private DefaultListModel<String> contactListModel = new DefaultListModel<String>();
+	private DefaultListModel contactListModel = new DefaultListModel();
 	static private JTabbedPaneCloseButton tabbedPane;
-	private HashMap<String, ChatTab> nickToTabMap = new HashMap<String, ChatTab>();
+	private static HashMap<String, ChatTab> nickToTabMap = new HashMap<String, ChatTab>();
+	private HashMap<String, Contact> nickToContact = new HashMap<String, Contact>();
+	private JLabel ownerNicknameLbl;
 	
 	
 	public static JTabbedPane getTabbedPane(){
@@ -78,14 +77,22 @@ public class Chat extends JFrame {
 		return client;
 	}
 	
-	public static void setCurrentUser(int id, String username, Socket socket){
-		currentUser = new Contact(id, username, socket);
+	public static void setCurrentUser(Contact owner) {
+		currentUser = owner;
+	}
+
+	public static Contact getCurrentUser(){
+		return currentUser;
 	}
 	
 	/**
 	 * Create the frame.
 	 */
 	public Chat() {
+		//update server with listening port for incoming messages
+		client.updatePortAtServer();
+		
+		//continue init window
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent arg0) {
@@ -112,21 +119,11 @@ public class Chat extends JFrame {
 		gbc_tabbedPane.gridx = 0;
 		gbc_tabbedPane.gridy = 0;
 		contentPane.add(tabbedPane, gbc_tabbedPane);
-		
-		/*chatHistoryScrollPane = new JScrollPane();
-		tabbedPane.addTab("New tab", null, chatHistoryScrollPane, null);
-		chatHistoryScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		
-		chatHistoryLogTextarea = new JTextArea();
-		chatHistoryScrollPane.setViewportView(chatHistoryLogTextarea);
-		chatHistoryLogTextarea.setEditable(false);
-		*/
-		
+
 		btnSend = new JButton("Send");
 		btnSend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				//send text to user
-				
 				writeText();
 				inputTextField.requestFocus();
 			}
@@ -147,6 +144,11 @@ public class Chat extends JFrame {
 		btnAddNewContact.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				
+				if(newContactTextField.getText().equalsIgnoreCase(currentUser.getUsername())){
+					JOptionPane.showMessageDialog(null, "Can't add yourself");
+					return;
+				}
+				
 				if(newContactTextField.getText().isEmpty()){
 					JOptionPane.showMessageDialog(null, Constants.ERROR_EMPTY_CONTACT_TEXTFIELD);
 					return;
@@ -158,17 +160,28 @@ public class Chat extends JFrame {
 				}
 				
 				//request server to add contact
-				Boolean addedStatus = client.addContact(currentUser.getUsername(), newContactTextField.getText());
+				Contact contact = client.addContact(currentUser.getUsername(), newContactTextField.getText());
 				//get true/false confirmation from server
-				if(addedStatus!=null && addedStatus==true){
+				if(contact!=null){
 					//if true, add username to list
-					contactListModel.addElement(newContactTextField.getText().toLowerCase());
+					contactListModel.addElement(contact.getUsername().toLowerCase());
+					nickToContact.put(contact.getUsername().toLowerCase(), contact);
 				}else{
 					//if false, show error
 					JOptionPane.showMessageDialog(null, "Contact doesn't exist");
 				}
 			}
 		});
+		
+		ownerNicknameLbl = new JLabel(currentUser.getUsername());
+		ownerNicknameLbl.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		GridBagConstraints gbc_ownerNicknameLbl = new GridBagConstraints();
+		gbc_ownerNicknameLbl.gridheight = 2;
+		gbc_ownerNicknameLbl.insets = new Insets(0, 0, 5, 0);
+		gbc_ownerNicknameLbl.gridx = 1;
+		gbc_ownerNicknameLbl.gridy = 0;
+		contentPane.add(ownerNicknameLbl, gbc_ownerNicknameLbl);
+		
 		GridBagConstraints gbc_btnAddNewContact = new GridBagConstraints();
 		gbc_btnAddNewContact.insets = new Insets(0, 0, 5, 0);
 		gbc_btnAddNewContact.gridx = 1;
@@ -176,6 +189,15 @@ public class Chat extends JFrame {
 		contentPane.add(btnAddNewContact, gbc_btnAddNewContact);
 		
 		newContactTextField = new JTextField();
+		newContactTextField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent arg0) {
+				if(arg0.getKeyChar() == KeyEvent.VK_ENTER){
+					btnAddNewContact.doClick();
+					return;
+				}
+			}
+		});
 		GridBagConstraints gbc_newContactTextField = new GridBagConstraints();
 		gbc_newContactTextField.insets = new Insets(0, 0, 5, 0);
 		gbc_newContactTextField.fill = GridBagConstraints.HORIZONTAL;
@@ -200,14 +222,13 @@ public class Chat extends JFrame {
 		gbc_scrollPane.gridy = 6;
 		contentPane.add(scrollPane, gbc_scrollPane);
 		
-		contactsList = new JList<String>();
+		contactsList = new JList();
 		
 		contactsList.addMouseListener(new MouseAdapter()
 		 {
-			
+			//open chat window of contact
 			public void mouseClicked(MouseEvent e) {
-				@SuppressWarnings("unchecked")
-				JList<String> theList = (JList<String>) e.getSource();
+				JList theList = (JList) e.getSource();
 				if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2) {
 					if (e.getClickCount() == 2) {
 						int index = theList.locationToIndex(e.getPoint());
@@ -216,10 +237,10 @@ public class Chat extends JFrame {
 							//check if tab already exists
 							if(tabbedPane.indexOfTab(o.toString())==-1){
 								//add tab if not
-								addChatTab(o.toString());
+								addChatTab(nickToContact.get(o.toString().toLowerCase()));
 							}
 							//switch to chat of selected contact
-							tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(o.toString()));
+							tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(o.toString().toLowerCase()));
 						}
 					}
 				}
@@ -248,36 +269,34 @@ public class Chat extends JFrame {
 		//init client
 		//1. load contacts of client
 		//		get contacts from server 
-		List<Contact> contactList = client.getContacts(currentUser.getUsername());
+		System.out.println("currentUser.getUsername()="+currentUser.getUsername());
+		System.out.println("currentUser.getId()="+currentUser.getId());
+		
+		List<Contact> contactList = client.getFriends(currentUser.getUsername());
 		Iterator<Contact> iter = contactList.iterator();
 		System.out.println("contactList size="+contactList.size());
 		while(iter.hasNext()){
 			Contact c = iter.next();
-			//contactListModel.addElement(c.getUsername().toLowerCase());
 			contactListModel.addElement(c.getUsername());
+			nickToContact.put(c.getUsername().toLowerCase(), c);
+			nickToTabMap.put(c.getUsername().toLowerCase(), new ChatTab(c));
 		}
-		addChatTab("tafat");
 		
-		//addChatTab("merav");
-		updateChat(new Message("sup","merav",currentUser.getUsername()));
-		updateChat(new Message("baby","tafat",currentUser.getUsername()));
-		updateChat(new Message("im here","yamit",currentUser.getUsername()));
+		
 	}
 	
 	private void writeText(){
 		if(tabbedPane.getTabCount()==0){
-			JOptionPane.showMessageDialog(null, "Select a contact to send a message to");
+			JOptionPane.showMessageDialog(null, "Select a contact first");
 			return;
 		}
 		int selectedIndex = tabbedPane.getSelectedIndex();
-		String nickNameTo = tabbedPane.getTitleAt(selectedIndex);
+		String nickNameTo = tabbedPane.getTitleAt(selectedIndex).toLowerCase();
 		
 		if(!inputTextField.getText().isEmpty()){
 			//send message to server and get response from server
-			Message m = new Message(inputTextField.getText(), currentUser.getUsername().toLowerCase(), nickNameTo.toLowerCase()); //text, from, to
+			Message m = new Message(inputTextField.getText(), nickToTabMap.get(nickNameTo).getContact()); //text, from, to
 			Boolean isSent = client.sendMessage(m);
-			//String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
-			String timeStamp = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
 			String msgToAppend= prepareMessage(inputTextField.getText(),isSent);
 			//show message in log
 			nickToTabMap.get(nickNameTo).appendMessage(msgToAppend);
@@ -287,48 +306,47 @@ public class Chat extends JFrame {
 		}
 	}
 	
-	public String prepareMessage(String text, boolean isSent){
+	public static String prepareMessage(String text, boolean isSent){
 		String timeStamp = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
 		
 		if(isSent){
 			return "<" + timeStamp + "> " + text + "\n";
 		}else{
-			return "<" + timeStamp + "> " + "Couldn't send your message!" + "\n";
+			return "<" + timeStamp + "> " + "Couldn't send your message!" + "\n" + text +"\n";
 		}
 	}
 	
-	
-	public void updateChat(Message m){
+	public static void updateChat(Message m){
+		String fromNickname = (m.getFromContact().getUsername()).toLowerCase();
+		ChatTab chatTab = null;
+		
 		//add tab if not exists
-		if(tabbedPane.indexOfTab(m.getFrom().toLowerCase())==-1){
-			addChatTab(m.getFrom());
+		if(tabbedPane.indexOfTab(fromNickname)==-1){
+			addChatTab(m.getFromContact());
 		}
+		chatTab = nickToTabMap.get(fromNickname);
 		
 		//add content to chat history
-		nickToTabMap.get(m.getFrom()).appendMessage(prepareMessage(m.getText(),true));
+		chatTab.appendMessage(prepareMessage(m.getText(),true));
 		
 		//flash tab
-		if(tabbedPane.getSelectedIndex()!=tabbedPane.indexOfTab(m.getFrom().toLowerCase())){
-			flashTab(m.getFrom());
+		if(tabbedPane.getSelectedIndex()!=tabbedPane.indexOfTab(fromNickname)){
+			flashTab(chatTab);
 		}
 	}
 	
-
-	
-	private void flashTab(String from) {
-		nickToTabMap.get(from).startTimer();
+	private static void flashTab(ChatTab ct) {
+		ct.startTimer();
 	}
-
-    
-	private void addChatTab(String contactNickname){
-		JTextArea chatHistoryLogTextarea2;
+ 
+	private static void addChatTab(Contact c){
+		String contactNickname = c.getUsername();
+		ChatTab ct = null;
 		
 		if(nickToTabMap.containsKey(contactNickname)){
-			chatHistoryLogTextarea2 = nickToTabMap.get(contactNickname).getChatHistoryLogTextarea();
+			ct = nickToTabMap.get(contactNickname);
 		}else{
-			
-			chatHistoryLogTextarea2 = new JTextArea();
-			ChatTab ct = new ChatTab(contactNickname, chatHistoryLogTextarea2);
+			ct = new ChatTab(c);
 			nickToTabMap.put(contactNickname, ct);
 		}
 		
@@ -336,9 +354,9 @@ public class Chat extends JFrame {
 		tabbedPane.addTab(contactNickname, null, chatHistoryScrollPane2, null);
 		chatHistoryScrollPane2.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		
-		//JTextArea chatHistoryLogTextarea2 = new JTextArea();
-		chatHistoryScrollPane2.setViewportView(chatHistoryLogTextarea2);
-		chatHistoryLogTextarea2.setEditable(false);
-
+		chatHistoryScrollPane2.setViewportView(ct.getChatHistoryLogTextarea());
+		ct.getChatHistoryLogTextarea().setEditable(false);
 	}
+
+
 }

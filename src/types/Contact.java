@@ -7,7 +7,7 @@ public class Contact implements Serializable {
 
 	int id;
 	String nickname;
-	Socket socket;
+	transient  Socket socket;
 	
 	public Contact(int id, String nickname, Socket socket){
 		this.id = id;

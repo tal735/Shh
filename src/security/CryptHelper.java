@@ -16,7 +16,7 @@ public class CryptHelper {
 	}
 	
 	public Contact decode_Contact(Message M){
-		return M.getContact();
+		return M.getToContact();
 	}
 	
 	

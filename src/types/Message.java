@@ -4,47 +4,25 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 
+import main.Chat;
+
 public class Message implements Serializable {
-	Contact contact;
-	String text;
-	String from, to;
-	Boolean sentSuccessful = false;
-	Date timestamp;
 	
-	public Message(String text, String from, String to){
-		this.text = text;
-		this.from = from;
-		this.to = to;
-		this.timestamp = Calendar.getInstance().getTime();
-	}
-	
-	public String getFrom(){
-		return this.from;
-	}
-	
-	public String getTo(){
-		return this.to;
-	}
+	private static final long serialVersionUID = 1L;
+	private String text;
+	private Boolean sentSuccessful = false;
+	private Date timestamp;
+	private Contact fromContact, toContact;
 	
 	public Message(String text, Contact contact){
-		this.contact = contact;
+		this.fromContact = Chat.getCurrentUser();
+		this.toContact = contact;
 		this.text = text;
-	}
-	
-	public void setText(String text){
-		this.text = text;
+		this.timestamp = Calendar.getInstance().getTime();
 	}
 	
 	public String getText(){
 		return this.text;
-	}
-	
-	public void setContact(Contact c){
-		this.contact = c;
-	}
-	
-	public Contact getContact(){
-		return this.contact;
 	}
 	
 	public Boolean getSendStatus(){
@@ -54,4 +32,17 @@ public class Message implements Serializable {
 	public void setSendStatus(boolean status){
 		this.sentSuccessful = status;
 	}
+	
+	public Contact getFromContact(){
+		return this.fromContact;
+	}
+	
+	public Contact getToContact(){
+		return this.toContact;
+	}
+	
+	public Date getTimestap(){
+		return this.timestamp;
+	}
+	
 }

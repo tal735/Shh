@@ -12,7 +12,7 @@ This is an ONGOING project, further changes/additions/fixes will be implemented,
 
 Could it be better? Yes. However I'm doing it for my own amusement.
 
-TODO:
+TODO: <br />
 1. Store data on database using Hibernate <br />
 2. Update availability status icon (online/offline) at client's contact list. <br />
 3. Access Control of requests sent to server (prevent disguised requests as being sent by another user). <br />

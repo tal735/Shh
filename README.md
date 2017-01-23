@@ -1,5 +1,7 @@
 # Shh
 
+![alt tag](http://www.photo-host.org/images/2017/01/23/IWSEb.png)
+
 A chat messaging application written (and still being written) in JAVA, both client and server sides. 
 
 The purpose of this app is to allow private chatting (hence the name 'Shh..').
@@ -20,5 +22,3 @@ TODO:
 7. Encrypt messages end-to-end.
 8. Personalization (Window colors, etc..)
 9. Enhance contact profile (Avatar, more fields)
-
-![alt tag](http://www.photo-host.org/images/2017/01/23/IWSEb.png)

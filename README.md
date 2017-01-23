@@ -21,5 +21,4 @@ TODO:
 8. Personalization (Window colors, etc..)
 9. Enhance contact profile (Avatar, more fields)
 
-![alt tag](http://www.photo-host.org/images/2017/01/23/2hp4NeWxm.png)
-![alt tag](http://www.photo-host.org/images/2017/01/23/idA8Y6.png)
+![alt tag](http://www.photo-host.org/images/2017/01/23/IWSEb.png)

@@ -1,3 +1,5 @@
+![alt tag](http://www.photo-host.org/images/2017/01/23/klXqi.png)
+
 # Shh
 
 A chat messaging application written (and still being written) in JAVA, both client and server sides. 

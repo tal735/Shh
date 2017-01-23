@@ -1,6 +1,3 @@
-![alt tag](http://www.photo-host.org/images/2017/01/23/2hp4NeWxm.png)
-![alt tag](http://www.photo-host.org/images/2017/01/23/idA8Y6.png)
-
 # Shh
 
 A chat messaging application written (and still being written) in JAVA, both client and server sides. 
@@ -23,3 +20,6 @@ TODO:
 7. Encrypt messages end-to-end.
 8. Personalization (Window colors, etc..)
 9. Enhance contact profile (Avatar, more fields)
+
+![alt tag](http://www.photo-host.org/images/2017/01/23/2hp4NeWxm.png)
+![alt tag](http://www.photo-host.org/images/2017/01/23/idA8Y6.png)

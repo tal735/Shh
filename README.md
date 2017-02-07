@@ -17,8 +17,6 @@ TODO: <br />
 3. Access Control of requests sent to server (prevent disguised requests as being sent by another user). <br />
 4. A 'Search' form for current users in the system. <br />
 7. Encrypt messages end-to-end. <br />
-8. Personalization (Window colors, etc..) <br />
-9. Enhance contact profile (Avatar, more fields) <br />
 
 Done: <br />
 2. Update availability status icon (online/offline) at client's contact list. <br />

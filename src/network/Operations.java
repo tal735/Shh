@@ -7,9 +7,7 @@ import java.net.Socket;
 
 public class Operations {
 
-	public Operations(){};
-	
-	public  void sendItem(NetworkItem netItem, Socket targetSocket){
+	static public  	void 			sendItem(NetworkItem netItem, Socket targetSocket){
 		//send item to server
 		if(targetSocket == null || netItem == null){
 			return;
@@ -38,18 +36,16 @@ public class Operations {
 
 	}
 
-	public  NetworkItem recieveItem(Socket targetSocket){
+	static public  	NetworkItem 	recieveItem(Socket targetSocket){
 		//get response
 		try{
 			ObjectInputStream ois = new ObjectInputStream(targetSocket.getInputStream());
 			Object obj = ois.readObject();
 			return ((NetworkItem)obj);
 		}catch(Exception e){
+			System.out.println("Error receiving item..");
 			return new NetworkItem();
 		}
 	}
 	
-	public void handleItem(NetworkItem networkItem){
-		
-	}
 }

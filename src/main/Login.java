@@ -15,18 +15,19 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JPasswordField;
-import javax.swing.ImageIcon;
 
 import types.Contact;
 import misc.Constants;
+import misc.Constants.NetworkItemType;
 import network.Client;
 import network.Server;
+import network.client.actions.Action;
 
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import javax.swing.SwingConstants;
+import java.awt.Toolkit;
 
 public class Login {
 
@@ -73,35 +74,25 @@ public class Login {
 	 */
 	private void initialize() {
 		frmShh = new JFrame();
+		frmShh.setIconImage(Toolkit.getDefaultToolkit().getImage(Login.class.getResource("/pictures/WBPb_pA-.jpg")));
 		frmShh.setTitle("Shh...");
 		frmShh.setResizable(false);
 		frmShh.getContentPane().setBackground(Color.WHITE);
-		frmShh.setBounds(100, 100, 541, 461);
+		frmShh.setBounds(100, 100, 419, 238);
 		frmShh.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[]{89, 380, 0, 0, 0};
-		gridBagLayout.rowHeights = new int[]{0, 0, 0, 34, 52, 0, 0};
-		gridBagLayout.columnWeights = new double[]{0.0, 1.0, 0.0, 1.0, Double.MIN_VALUE};
-		gridBagLayout.rowWeights = new double[]{1.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gridBagLayout.columnWidths = new int[]{89, 267, 0};
+		gridBagLayout.rowHeights = new int[]{70, 34, 52, 0, 0};
+		gridBagLayout.columnWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
+		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		frmShh.getContentPane().setLayout(gridBagLayout);
-		
-		JLabel lblNewLabel = new JLabel("");
-		lblNewLabel.setIcon(new ImageIcon(Login.class.getResource("/pictures/WBPb_pA-.jpg")));
-		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
-		gbc_lblNewLabel.gridwidth = 4;
-		gbc_lblNewLabel.fill = GridBagConstraints.VERTICAL;
-		gbc_lblNewLabel.insets = new Insets(0, 0, 5, 0);
-		gbc_lblNewLabel.gridx = 0;
-		gbc_lblNewLabel.gridy = 0;
-		frmShh.getContentPane().add(lblNewLabel, gbc_lblNewLabel);
 		
 		JLabel lblUsername = new JLabel("Nickname:");
 		GridBagConstraints gbc_lblUsername = new GridBagConstraints();
-		gbc_lblUsername.gridheight = 2;
 		gbc_lblUsername.anchor = GridBagConstraints.SOUTHEAST;
 		gbc_lblUsername.insets = new Insets(0, 0, 5, 5);
 		gbc_lblUsername.gridx = 0;
-		gbc_lblUsername.gridy = 1;
+		gbc_lblUsername.gridy = 0;
 		frmShh.getContentPane().add(lblUsername, gbc_lblUsername);
 		
 		usernameTextField = new JTextField();
@@ -109,9 +100,9 @@ public class Login {
 		GridBagConstraints gbc_usernameTextField = new GridBagConstraints();
 		gbc_usernameTextField.fill = GridBagConstraints.HORIZONTAL;
 		gbc_usernameTextField.anchor = GridBagConstraints.SOUTH;
-		gbc_usernameTextField.insets = new Insets(0, 0, 5, 5);
+		gbc_usernameTextField.insets = new Insets(0, 0, 5, 0);
 		gbc_usernameTextField.gridx = 1;
-		gbc_usernameTextField.gridy = 2;
+		gbc_usernameTextField.gridy = 0;
 		frmShh.getContentPane().add(usernameTextField, gbc_usernameTextField);
 		usernameTextField.setColumns(10);
 		
@@ -120,7 +111,7 @@ public class Login {
 		gbc_lblPassword.anchor = GridBagConstraints.SOUTHEAST;
 		gbc_lblPassword.insets = new Insets(0, 0, 5, 5);
 		gbc_lblPassword.gridx = 0;
-		gbc_lblPassword.gridy = 3;
+		gbc_lblPassword.gridy = 1;
 		frmShh.getContentPane().add(lblPassword, gbc_lblPassword);
 		
 		passwordField = new JPasswordField();
@@ -128,9 +119,9 @@ public class Login {
 		GridBagConstraints gbc_passwordField = new GridBagConstraints();
 		gbc_passwordField.fill = GridBagConstraints.HORIZONTAL;
 		gbc_passwordField.anchor = GridBagConstraints.SOUTH;
-		gbc_passwordField.insets = new Insets(0, 0, 5, 5);
+		gbc_passwordField.insets = new Insets(0, 0, 5, 0);
 		gbc_passwordField.gridx = 1;
-		gbc_passwordField.gridy = 3;
+		gbc_passwordField.gridy = 1;
 		frmShh.getContentPane().add(passwordField, gbc_passwordField);
 		
 		JButton btnNewButton = new JButton("Shh...");
@@ -139,13 +130,14 @@ public class Login {
 				if(usernameTextField.getText().isEmpty() || passwordField.getPassword().length == 0){
 					JOptionPane.showMessageDialog(null, Constants.ERROR_BAD_USERPASS);
 				}else{
-					//verify username & password
-					if(Chat.getClient().autenticate(usernameTextField.getText(), passwordField.getPassword())){
-						//set cuurent owner
-						Chat.setCurrentUser(Chat.getClient().getContact(usernameTextField.getText()));
+					Object[] loginInfo = {usernameTextField.getText(), passwordField.getPassword()};
+					Boolean loginSuccess = (Boolean) MainContacts.getClient().doAction(NetworkItemType.NetworkLoginInfo, loginInfo);
+					if(loginSuccess){
+						Contact ownerContact = (Contact) MainContacts.getClient().doAction(NetworkItemType.GetContact, usernameTextField.getText());
+						MainContacts.setCurrentUser(ownerContact);
 						//open chat form
-						frmShh.dispose();//setVisible(false);
-						new Chat().setVisible(true);
+						frmShh.dispose();
+						new MainContacts().setVisible(true);
 					}else{
 						JOptionPane.showMessageDialog(null, Constants.ERROR_AUTHENTICATION);
 					}
@@ -154,14 +146,17 @@ public class Login {
 		});
 		
 		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
-		gbc_btnNewButton.fill = GridBagConstraints.VERTICAL;
-		gbc_btnNewButton.insets = new Insets(0, 0, 5, 5);
+		gbc_btnNewButton.fill = GridBagConstraints.BOTH;
+		gbc_btnNewButton.insets = new Insets(0, 0, 5, 0);
 		gbc_btnNewButton.gridx = 1;
-		gbc_btnNewButton.gridy = 4;
+		gbc_btnNewButton.gridy = 2;
 		frmShh.getContentPane().add(btnNewButton, gbc_btnNewButton);
 		
 		
 
 	}
 
+	
+
+	
 }

@@ -1,20 +1,20 @@
 package types;
 
 import java.io.Serializable;
-import java.net.Socket;
 
 public class Contact implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 888790484735681874L;
 	int id;
 	String nickname;
-	transient  Socket socket;
 	
-	public Contact(int id, String nickname, Socket socket){
+	public Contact(int id, String nickname){
 		this.id = id;
 		this.nickname = nickname;
-		this.socket = socket;
 	}
-	
 	
 	public String getUsername(){
 		return this.nickname;
@@ -24,12 +24,9 @@ public class Contact implements Serializable {
 		return this.id;
 	}
 	
-	public Socket getSocket(){
-		return this.socket;
+	@Override
+	public String toString() {
+		return "[" + id + ", " + this.getUsername() + "]";
 	}
-	public void setSocket(Socket socket){
-		this.socket = socket;
-	}
-
 	
 }

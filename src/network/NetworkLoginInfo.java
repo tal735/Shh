@@ -3,10 +3,14 @@ package network;
 import java.io.Serializable;
 
 public class NetworkLoginInfo implements Serializable{
-	private int id = -1;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -9189000921398985550L;
 	private byte[] password;
 	private String username;
 	private boolean loginSuccess = false;
+	
 	//password should be hashed in this class
 	public NetworkLoginInfo(String username, byte[] password) {
 		this.username = username;
@@ -29,10 +33,4 @@ public class NetworkLoginInfo implements Serializable{
 		return this.loginSuccess;
 	}
 	
-	public void setId(int id){
-		this.id = id;
-	}
-	public int getId(){
-		return this.id;
-	}
 }

@@ -4,18 +4,19 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 
-import main.Chat;
+import main.MainContacts;
 
 public class Message implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
-	private String text;
-	private Boolean sentSuccessful = false;
-	private Date timestamp;
+	
 	private Contact fromContact, toContact;
+	private String text;
+	private Date timestamp;
+	private Boolean sentSuccessful = false;
 	
 	public Message(String text, Contact contact){
-		this.fromContact = Chat.getCurrentUser();
+		this.fromContact = MainContacts.getCurrentUser();
 		this.toContact = contact;
 		this.text = text;
 		this.timestamp = Calendar.getInstance().getTime();
@@ -45,4 +46,8 @@ public class Message implements Serializable {
 		return this.timestamp;
 	}
 	
+	@Override
+	public String toString() {
+		return "From: " + fromContact.toString() + " ,to " + toContact.toString() + " timestamp: " + timestamp.toString();
+	}
 }

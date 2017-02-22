@@ -7,7 +7,7 @@ public class Constants {
 	public static String ERROR_AUTHENTICATION = "Invalid Username / Password. Try again.";
 	public static String ERROR_EMPTY_CONTACT_TEXTFIELD = "Please enter a name first";
 	public static int APPLICATION_NETWORK_PORT = 4456;
-	public static String APP_SERVER_HOSTNAME = "talsim02";
+	public static String APP_SERVER_HOSTNAME = "SERVER_HOST_NAME";
 	
 	public static enum NetworkItemType{
 		NetworkLoginInfo, 		//credentials login

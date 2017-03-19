@@ -1,6 +1,6 @@
 package network.server.actions;
 
-import network.Server;
+import database.DBConnector;
 
 public class MessagePortUpdateAction extends Action {
 
@@ -14,8 +14,8 @@ public class MessagePortUpdateAction extends Action {
 	 * Output: nothing
 	 */
 	
-	public MessagePortUpdateAction(Object netowrkObject, Server server) {
-		super(netowrkObject, server);
+	public MessagePortUpdateAction(Object netowrkObject, DBConnector databaseConnector) {
+		super(netowrkObject, databaseConnector);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -31,7 +31,7 @@ public class MessagePortUpdateAction extends Action {
 			//update port
 			if(id!=null && newPort!=null){
 					System.out.println("updating port " + newPort + " to id " + id);
-					this.server.getIdToPort().put(id, newPort);
+					this.databaseConnector.getIdToPort().put(id, newPort);
 			}
 			//no need to return anything
 			//response = null;

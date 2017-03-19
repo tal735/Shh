@@ -4,13 +4,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import database.DBConnector;
 import types.Message;
-import network.Server;
 
 public class GetQueuedMessages extends Action {
 
-	public GetQueuedMessages(Object networkObject, Server server) {
-		super(networkObject, server);
+	public GetQueuedMessages(Object networkObject, DBConnector databaseConnector) {
+		super(networkObject, databaseConnector);
 	}
 
 	@Override
@@ -19,11 +19,11 @@ public class GetQueuedMessages extends Action {
 		Integer id = (Integer) networkObject;
 		Set<Message> sentMessages = new HashSet<Message>();
 		MessageAction messageAction;
-		List<Message> messageList = server.getIdToUnsentMessages().get(id);
+		List<Message> messageList = databaseConnector.getIdToUnsentMessages().get(id);
 		//send unsent messages
 		if(messageList!=null){
 			for(Message m : messageList){
-				messageAction = new MessageAction(m, server);
+				messageAction = new MessageAction(m, databaseConnector);
 				messageAction.exectue();
 				if(m.getSendStatus()){
 					//removing message

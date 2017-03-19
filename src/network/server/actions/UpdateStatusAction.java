@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import database.DBConnector;
 import types.Contact;
 import misc.Constants.NetworkItemType;
 import network.NetworkItem;
 import network.Operations;
-import network.Server;
 
 /**
  * 
@@ -23,8 +23,8 @@ import network.Server;
 
 public class UpdateStatusAction extends Action {
 
-	public UpdateStatusAction(Object networkObject, Server server) {
-		super(networkObject, server);
+	public UpdateStatusAction(Object networkObject, DBConnector databaseConnector) {
+		super(networkObject, databaseConnector);
 	}
 
 	@Override
@@ -33,13 +33,13 @@ public class UpdateStatusAction extends Action {
 		Integer id = (Integer) values[0];
 		Boolean isOnline = (Boolean) values[1];
 		
-		for(Contact c : server.getIdToFriends().get(id)){
-			Socket toSocket = server.getIdToSocket().get(c.getId());
+		for(Contact c : databaseConnector.getIdToFriends().get(id)){
+			Socket toSocket = databaseConnector.getIdToSocket().get(c.getId());
 			if(toSocket!=null){
 				//prepare socket of target user
 				Socket dstSocket = null;
 				try {
-					dstSocket = new Socket(toSocket.getInetAddress().getHostAddress(), server.getIdToPort().get(c.getId()));
+					dstSocket = new Socket(toSocket.getInetAddress().getHostAddress(), databaseConnector.getIdToPort().get(c.getId()));
 					//send message
 					Operations.sendItem(new NetworkItem(NetworkItemType.GetStatus, new Object[] {id, isOnline}), dstSocket);
 					

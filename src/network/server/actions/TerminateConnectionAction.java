@@ -3,7 +3,7 @@ package network.server.actions;
 import java.io.IOException;
 import java.net.Socket;
 
-import network.Server;
+import database.DBConnector;
 
 /**
  * User sends termination signal (closes application)
@@ -13,13 +13,13 @@ import network.Server;
 
 public class TerminateConnectionAction extends Action {
 	private Object extra;
-	public TerminateConnectionAction(Object netowrkObject, Server server) {
-		super(netowrkObject, server);
+	public TerminateConnectionAction(Object netowrkObject, DBConnector databaseConnector) {
+		super(netowrkObject, databaseConnector);
 	}
 
-	public TerminateConnectionAction(Object networkObject, Server server,
+	public TerminateConnectionAction(Object networkObject, DBConnector databaseConnector,
 			Object extra) {
-		super(networkObject, server);
+		super(networkObject, databaseConnector);
 		this.extra = extra;	
 	}
 

@@ -18,9 +18,9 @@ public class Client {
 	private  ActionFactory actionFactory = new ActionFactory(this);
 	private MainContacts mainContactsForm = null;
 	
-	public void setMainContacts(MainContacts mc){
+	/*public void setMainContacts(MainContacts mc){
 		this.mainContactsForm = mc;
-	}
+	}*/
 	
 	public Client(){	
 		//create socket

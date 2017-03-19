@@ -1,18 +1,19 @@
 package network.server.actions;
 
+import database.DBConnector;
 import misc.Constants.NetworkItemType;
 import network.NetworkItem;
-import network.Server;
 
 public class NullAction extends Action{
 
-	public NullAction(Object netowrkObject, Server server) {
-		super(netowrkObject, server);
+	public NullAction(Object netowrkObject, DBConnector databaseConnector) {
+		super(netowrkObject, databaseConnector);
 	}
 
 	@Override
 	public void exectue() {
-		response = new NetworkItem(NetworkItemType.NullItem, null);		
+		setResponse(new NetworkItem(NetworkItemType.NullItem, null));
+		//response = new NetworkItem(NetworkItemType.NullItem, null);		
 	}
 	
 }

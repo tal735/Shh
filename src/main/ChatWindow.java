@@ -15,18 +15,13 @@ import java.awt.Rectangle;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.event.ContainerAdapter;
-import java.awt.event.ContainerEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
@@ -180,6 +175,7 @@ public class ChatWindow extends JFrame {
 		
 		messagePanel.setLayout(new MigLayout("", "[144.00,left][grow][280.00,grow]", "[][57.00,top]"));
 		
+		//JLabel label = new JLabel(new SimpleDateFormat("HH:mm:ss").format(m.getTimestap()));
 		JLabel label = new JLabel(new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime()));
 		messagePanel.add(label, "cell 1 0");
 		

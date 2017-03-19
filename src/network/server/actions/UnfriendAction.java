@@ -1,9 +1,9 @@
 package network.server.actions;
 
+import database.DBConnector;
 import types.Contact;
 import misc.Constants.NetworkItemType;
 import network.NetworkItem;
-import network.Server;
 
 
 
@@ -17,8 +17,8 @@ import network.Server;
 
 public class UnfriendAction extends Action{
 
-	public UnfriendAction(Object networkObject, Server server) {
-		super(networkObject, server);
+	public UnfriendAction(Object networkObject, DBConnector databaseConnector) {
+		super(networkObject, databaseConnector);
 	}
 
 	@Override
@@ -29,16 +29,17 @@ public class UnfriendAction extends Action{
 		int friendToRemoveId = input[1];
 		boolean removed = false;
 		
-		for(Contact friend : this.server.getIdToFriends().get(myId)){
+		for(Contact friend : this.databaseConnector.getIdToFriends().get(myId)){
 			if(friend.getId()==friendToRemoveId){
 				//this.server.getIdToFriends().get(myId).remove(index);
-				removed = this.server.getIdToFriends().get(myId).remove(friend);
-				System.out.println("Removed " + friend.getUsername() + " from " + this.server.getIdToContactMap().get(myId).getUsername() + "? " + removed);
+				removed = this.databaseConnector.getIdToFriends().get(myId).remove(friend);
+				System.out.println("Removed " + friend.getUsername() + " from " + this.databaseConnector.getIdToContactMap().get(myId).getUsername() + "? " + removed);
 				break;
 			}
 		}
 		
 		//set response to user
-		response =  new NetworkItem(NetworkItemType.Unfriend, removed);
+		setResponse(new NetworkItem(NetworkItemType.Unfriend, removed));
+		//response =  new NetworkItem(NetworkItemType.Unfriend, removed);
 	}
 }

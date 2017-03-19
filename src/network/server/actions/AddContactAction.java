@@ -1,9 +1,9 @@
 package network.server.actions;
 
+import database.DBConnector;
 import types.Contact;
 import misc.Constants.NetworkItemType;
 import network.NetworkItem;
-import network.Server;
 
 /**
  * Find and add contact (by nickname) to a user's contact list 
@@ -15,14 +15,13 @@ import network.Server;
 
 public class AddContactAction  extends Action{
 
-	public AddContactAction(Object netowrkObject, Server server) {
-		super(netowrkObject, server);
+	public AddContactAction(Object netowrkObject, DBConnector databaseConnector) {
+		super(netowrkObject, databaseConnector);
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public void exectue() {
-
 			//[0] = myUsername
 			//[1] = contactNickname
 			String values[] = (String []) networkObject;
@@ -30,20 +29,21 @@ public class AddContactAction  extends Action{
 			String contactToAdd = values[1].toLowerCase();
 			
 			//check if username exists
-			Integer idOfFriend = server.getNickToIdMap().get(contactToAdd);
-			Contact friend = server.getIdToContactMap().get(idOfFriend);
+			Integer idOfFriend = databaseConnector.getNickToIdMap().get(contactToAdd);
+			Contact friend = databaseConnector.getIdToContactMap().get(idOfFriend);
 			if(friend!=null){
 				//check if user is not already friend
-				if(!server.getIdToFriends().get(server.getNickToIdMap().get(curentUsername)).contains(friend)){ //this is already checked in client. but just in case
+				if(!databaseConnector.getIdToFriends().get(databaseConnector.getNickToIdMap().get(curentUsername)).contains(friend)){ //this is already checked in client. but just in case
 					//add friend
-					boolean added = server.getIdToFriends().get(server.getNickToIdMap().get(curentUsername)).add(friend);
+					boolean added = databaseConnector.getIdToFriends().get(databaseConnector.getNickToIdMap().get(curentUsername)).add(friend);
 					System.out.println("added " + friend.toString() + " to " + curentUsername + "? " + added);
 					
 				}
 			}
 			
 			//send contact back		
-			response = new NetworkItem(NetworkItemType.AddContact, friend);
+			this.setResponse(new NetworkItem(NetworkItemType.AddContact, friend));
+			//response = new NetworkItem(NetworkItemType.AddContact, friend);
 	}
 
 }

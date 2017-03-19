@@ -2,11 +2,11 @@ package network.server.actions;
 
 import java.net.Socket;
 
+import database.DBConnector;
 import security.CryptHelper;
 import misc.Constants.NetworkItemType;
 import network.NetworkItem;
 import network.NetworkLoginInfo;
-import network.Server;
 
 /**
  * check login and register socket of nickname in server
@@ -18,15 +18,14 @@ public class NetworkLoginInfoAction extends Action {
 
 	private CryptHelper crypt = new CryptHelper();
 	private Object extra = null;
-	public NetworkLoginInfoAction(Object netowrkObject, Server server) {
-		super(netowrkObject, server);
+	public NetworkLoginInfoAction(Object netowrkObject, DBConnector databaseConnector) {
+		super(netowrkObject, databaseConnector);
 		// TODO Auto-generated constructor stub
 	}
 
-	public NetworkLoginInfoAction(Object networkObject, Server server,
+	public NetworkLoginInfoAction(Object networkObject, DBConnector databaseConnector,
 			Object extra) {
-		super(networkObject, server);
-		this.extra = extra;
+		super(networkObject, databaseConnector);
 	}
 
 	@Override
@@ -39,22 +38,22 @@ public class NetworkLoginInfoAction extends Action {
 
 		//check if username exists
 		String username = loginInfo.getUsername().toLowerCase();
-		Integer id = server.getNickToIdMap().get(username);
+		Integer id = databaseConnector.getNickToIdMap().get(username);
 		
 		if(id != null){
 			//check if password matches
-			loginInfo.setLoginSuccess(crypt.passwordsMatch((byte[]) server.getNickToPass().get(username), loginInfo.getHashedPassword()));
+			loginInfo.setLoginSuccess(crypt.passwordsMatch((byte[]) databaseConnector.getNickToPass().get(username), loginInfo.getHashedPassword()));
 		}
 		
 		//register socket.
 		if(loginInfo.isLoginSuccess()){
 			//save current socket
-			server.getIdToSocket().put(id, socket);
+			databaseConnector.getIdToSocket().put(id, socket);
 			
 		}
 		
-		response = new NetworkItem(NetworkItemType.NetworkLoginInfo, loginInfo);
-		
+		//response = new NetworkItem(NetworkItemType.NetworkLoginInfo, loginInfo);
+		setResponse( new NetworkItem(NetworkItemType.NetworkLoginInfo, loginInfo));
 	}
 
 }

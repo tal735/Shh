@@ -3,7 +3,6 @@ package main;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 
 import misc.Constants;
 import misc.Constants.NetworkItemType;
@@ -18,7 +17,6 @@ import javax.swing.JLabel;
 import javax.swing.ImageIcon;
 import javax.swing.Box;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagLayout;
 
@@ -83,10 +81,9 @@ public class MainContacts extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	@SuppressWarnings("unchecked")
 	public MainContacts() {
 		//set this class for reference from Client class
-		client.setMainContacts(this);
+		//client.setMainContacts(this);
 		
 		//update server with listening port for incoming messages
 		client.doAction(NetworkItemType.MessagePortUpdate, getCurrentUser().getId());

@@ -6,11 +6,11 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import database.DBConnector;
 import types.Message;
 import misc.Constants.NetworkItemType;
 import network.NetworkItem;
 import network.Operations;
-import network.Server;
 
 /**
  * 
@@ -21,8 +21,8 @@ import network.Server;
  */
 public class MessageAction extends Action{
 
-	public MessageAction(Object networkObject, Server server) {
-		super(networkObject, server);
+	public MessageAction(Object networkObject, DBConnector databaseConnector) {
+		super(networkObject, databaseConnector);
 	}
 
 	@Override
@@ -37,12 +37,12 @@ public class MessageAction extends Action{
 		 */
 		NetworkItem messageItem = new NetworkItem(NetworkItemType.Message, m);
 		//get socket of destination user
-		Socket toSocket = server.getIdToSocket().get(idTo);
+		Socket toSocket = databaseConnector.getIdToSocket().get(idTo);
 		if(toSocket!=null){
 			//prepare socket of target user
 			Socket toMessageSocket = null;
 			try {
-				toMessageSocket = new Socket(toSocket.getInetAddress().getHostAddress(), server.getIdToPort().get(idTo));
+				toMessageSocket = new Socket(toSocket.getInetAddress().getHostAddress(), databaseConnector.getIdToPort().get(idTo));
 				//send message
 				Operations.sendItem(messageItem, toMessageSocket);
 				//set message flag to sent
@@ -68,13 +68,14 @@ public class MessageAction extends Action{
 		
 		//save in queue to send when user gets online
 		if(!isSent){
-			if(!server.getIdToUnsentMessages().containsKey(idTo)){
-				server.getIdToUnsentMessages().put(idTo, new ArrayList<Message>());
+			if(!databaseConnector.getIdToUnsentMessages().containsKey(idTo)){
+				databaseConnector.getIdToUnsentMessages().put(idTo, new ArrayList<Message>());
 				System.out.println("Created queue for id " + idTo);
 			}
 			
-			List<Message> mlist = server.getIdToUnsentMessages().get(idTo);
-			mlist.add(m);
+			//List<Message> mlist = databaseConnector.getIdToUnsentMessages().get(idTo);
+			//mlist.add(m);
+			databaseConnector.getIdToUnsentMessages().get(idTo).add(m);
 			System.out.println("Enqueued message: " + m.toString());
 		}
 		
@@ -82,7 +83,8 @@ public class MessageAction extends Action{
 		m.setSendStatus(isSent);
 		
 		//send back if success or fail
-		response = messageItem;
+		//response = messageItem;
+		setResponse(messageItem);
 	}
 
 }

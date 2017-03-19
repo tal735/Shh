@@ -19,9 +19,7 @@ import javax.swing.JPasswordField;
 import types.Contact;
 import misc.Constants;
 import misc.Constants.NetworkItemType;
-import network.Client;
 import network.Server;
-import network.client.actions.Action;
 
 import java.awt.Color;
 import java.awt.event.ActionListener;

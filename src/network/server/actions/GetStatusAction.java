@@ -2,14 +2,14 @@ package network.server.actions;
 
 import java.net.Socket;
 
+import database.DBConnector;
 import misc.Constants.NetworkItemType;
 import network.NetworkItem;
-import network.Server;
 
 public class GetStatusAction extends Action {
 
-	public GetStatusAction(Object networkObject, Server server) {
-		super(networkObject, server);
+	public GetStatusAction(Object networkObject, DBConnector databaseConnector) {
+		super(networkObject, databaseConnector);
 	}
 
 	@Override
@@ -22,16 +22,17 @@ public class GetStatusAction extends Action {
 		
 		//find availability of each user
 		for(int i=0; i<values.length; i++){
-			Socket s = server.getIdToSocket().get(values[i]);
+			Socket s = databaseConnector.getIdToSocket().get(values[i]);
 			if(s==null){
 				availableArray[i] = false;
 			}else{
-				availableArray[i] = !server.getIdToSocket().get(values[i]).isClosed();//isConnected();
+				availableArray[i] = !databaseConnector.getIdToSocket().get(values[i]).isClosed();//isConnected();
 			}	
 		}
 		
 		//return availability
-		response = new NetworkItem(NetworkItemType.GetStatus, availableArray);
+		//response = new NetworkItem(NetworkItemType.GetStatus, availableArray);
+		this.setResponse(new NetworkItem(NetworkItemType.GetStatus, availableArray));
 	}
 
 }
